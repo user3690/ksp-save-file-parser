@@ -7,7 +7,7 @@ example path: C:\Users\[user]\AppData\LocalLow\Intercept Games\Kerbal Space Prog
 usage: ksp_save_file_parser.exe save [pathToSaveFile]
 ```
 
-To build the binary for yourself, execute following commands in the root folder:
+To build the binary for yourself, you need go version 1.21.* installed, execute following command in the root folder:
 ```
 GOOS=windows GOARCH=amd64 go build -o ksp_save_file_parser.exe main.go
 ```
