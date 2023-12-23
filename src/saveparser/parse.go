@@ -48,7 +48,14 @@ func Parse(filePath string, saveToFile bool) error {
 	}
 
 	if saveToFile {
-		file, err = os.Create("reports.txt")
+		workingDir, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		pathToReportsFile := workingDir + string(os.PathSeparator) + "reports.txt"
+
+		file, err = os.Create(pathToReportsFile)
 		if err != nil {
 			return err
 		}
@@ -81,7 +88,7 @@ func Parse(filePath string, saveToFile bool) error {
 			return err
 		}
 
-		fmt.Printf("saved to %s%s%s\n", workingDir, string(os.PathSeparator), "reports.txt")
+		fmt.Printf("saved to %s\n", pathToReportsFile)
 
 		return err
 	}
