@@ -22,10 +22,22 @@ var (
 	}
 )
 
-func parse(cmd *cobra.Command, args []string) error {
-	var err error
+func init() {
+	saveCmd.Flags().BoolP("saveToFile", "s", false, "save output to reports.txt")
+}
 
-	err = saveparser.Parse(args[0])
+func parse(cmd *cobra.Command, args []string) error {
+	var (
+		saveToFile bool
+		err        error
+	)
+
+	saveToFile, err = cmd.Flags().GetBool("saveToFile")
+	if err != nil {
+		return err
+	}
+
+	err = saveparser.Parse(args[0], saveToFile)
 	if err != nil {
 		return err
 	}

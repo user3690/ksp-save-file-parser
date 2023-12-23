@@ -25,11 +25,13 @@ type scienceReport struct {
 	FinalScienceValue  float64 `json:"FinalScienceValue"`
 }
 
-func Parse(filePath string) error {
+func Parse(filePath string, saveToFile bool) error {
 	var (
-		save kerbalSaveFile
-		data []byte
-		err  error
+		save             kerbalSaveFile
+		data             []byte
+		file             *os.File
+		text, workingDir string
+		err              error
 	)
 
 	if _, err = os.Stat(filePath); err != nil {
@@ -42,6 +44,45 @@ func Parse(filePath string) error {
 	}
 
 	if err = json.Unmarshal(data, &save); err != nil {
+		return err
+	}
+
+	if saveToFile {
+		file, err = os.Create("reports.txt")
+		if err != nil {
+			return err
+		}
+
+		for _, curAgency := range save.Agencies {
+			text += fmt.Sprintf("Science data for %s\n", curAgency.Name)
+			text += fmt.Sprintf("SciencePointCapacity: %d\n", curAgency.SciencePointCapacity)
+			text += fmt.Sprintf("AdditionalSciencePoints: %d\n", curAgency.AdditionalSciencePoints)
+			text += fmt.Sprintln("")
+			text += fmt.Sprintln("===== Science Reports =====")
+
+			for _, report := range curAgency.ScienceReports {
+				text += fmt.Sprintf("ExperimentId: %s\n", report.ExperimentId)
+				text += fmt.Sprintf("ResearchLocationId: %s\n", report.ResearchLocationId)
+				text += fmt.Sprintf("ResearchReportType: %s\n", report.ResearchReportType)
+				text += fmt.Sprintf("FinalScienceValue: %f\n", report.FinalScienceValue)
+				text += fmt.Sprintln("=====")
+			}
+
+			_, err = fmt.Fprint(file, text)
+			if err != nil {
+				return err
+			}
+		}
+
+		file.Close()
+
+		workingDir, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("saved to %s%s%s\n", workingDir, string(os.PathSeparator), "reports.txt")
+
 		return err
 	}
 
