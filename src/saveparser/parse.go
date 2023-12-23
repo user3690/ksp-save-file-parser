@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 )
 
 type kerbalSaveFile struct {
@@ -47,6 +49,13 @@ func Parse(filePath string, saveToFile bool) error {
 		return err
 	}
 
+	// sort by experiment id
+	toSort := save.Agencies[0].ScienceReports
+	slices.SortFunc(toSort, func(a, b scienceReport) int {
+		return strings.Compare(a.ExperimentId, b.ExperimentId)
+	})
+	save.Agencies[0].ScienceReports = toSort
+
 	if saveToFile {
 		workingDir, err = os.Getwd()
 		if err != nil {
@@ -68,11 +77,13 @@ func Parse(filePath string, saveToFile bool) error {
 			text += fmt.Sprintln("===== Science Reports =====")
 
 			for _, report := range curAgency.ScienceReports {
-				text += fmt.Sprintf("ExperimentId: %s\n", report.ExperimentId)
-				text += fmt.Sprintf("ResearchLocationId: %s\n", report.ResearchLocationId)
-				text += fmt.Sprintf("ResearchReportType: %s\n", report.ResearchReportType)
-				text += fmt.Sprintf("FinalScienceValue: %f\n", report.FinalScienceValue)
-				text += fmt.Sprintln("=====")
+				text += fmt.Sprintf(
+					"ExperimentId: %s | ResearchLocationId: %s | ResearchReportType: %s | FinalScienceValue: %f\n",
+					report.ExperimentId,
+					report.ResearchLocationId,
+					report.ResearchReportType,
+					report.FinalScienceValue,
+				)
 			}
 		}
 
