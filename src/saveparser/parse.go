@@ -74,11 +74,11 @@ func Parse(filePath string, saveToFile bool) error {
 				text += fmt.Sprintf("FinalScienceValue: %f\n", report.FinalScienceValue)
 				text += fmt.Sprintln("=====")
 			}
+		}
 
-			_, err = fmt.Fprint(file, text)
-			if err != nil {
-				return err
-			}
+		_, err = fmt.Fprint(file, text)
+		if err != nil {
+			return err
 		}
 
 		file.Close()
