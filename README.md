@@ -12,3 +12,27 @@ To build the binary for yourself, you need go version 1.21.* installed, execute 
 ```
 GOOS=windows GOARCH=amd64 go build -o ksp_save_file_parser.exe main.go
 ```
+
+The end result looks something like this:
+```
+Science data for Your Agency
+SciencePointCapacity: 53
+AdditionalSciencePoints: 0
+
+===== Science Reports =====
+ExperimentId: CrewObservation
+ResearchLocationId: Kerbin_Atmosphere
+ResearchReportType: DataType
+FinalScienceValue: 4.000000
+=====
+ExperimentId: SurfaceSurvey
+ResearchLocationId: Kerbin_Landed_KerbinBeach
+ResearchReportType: DataType
+FinalScienceValue: 6.000000
+=====
+ExperimentId: SurfaceSurvey
+ResearchLocationId: Kerbin_Landed_KerbinBeach
+ResearchReportType: SampleType
+FinalScienceValue: 18.000000
+=====
+```
