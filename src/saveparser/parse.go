@@ -2,10 +2,18 @@ package saveparser
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
+)
+
+const (
+	atmosphereSurvey  = "AtmosphereSurvey"
+	crewObservation   = "CrewObservation"
+	environmentSurvey = "EnvironmentSurvey"
+	surfaceSurvey     = "SurfaceSurvey"
 )
 
 type kerbalSaveFile struct {
@@ -29,11 +37,11 @@ type scienceReport struct {
 
 func Parse(filePath string, saveToFile bool) error {
 	var (
-		save             kerbalSaveFile
-		data             []byte
-		file             *os.File
-		text, workingDir string
-		err              error
+		save       kerbalSaveFile
+		data       []byte
+		file       *os.File
+		workingDir string
+		err        error
 	)
 
 	if _, err = os.Stat(filePath); err != nil {
@@ -49,12 +57,10 @@ func Parse(filePath string, saveToFile bool) error {
 		return err
 	}
 
-	// sort by experiment id
-	toSort := save.Agencies[0].ScienceReports
-	slices.SortFunc(toSort, func(a, b scienceReport) int {
-		return strings.Compare(a.ExperimentId, b.ExperimentId)
-	})
-	save.Agencies[0].ScienceReports = toSort
+	save.Agencies[0].ScienceReports, err = sortExperiments(save.Agencies[0].ScienceReports)
+	if err != nil {
+		return err
+	}
 
 	if saveToFile {
 		workingDir, err = os.Getwd()
@@ -70,26 +76,12 @@ func Parse(filePath string, saveToFile bool) error {
 		}
 
 		for _, curAgency := range save.Agencies {
-			text += fmt.Sprintf("Science data for %s\n", curAgency.Name)
-			text += fmt.Sprintf("SciencePointCapacity: %d\n", curAgency.SciencePointCapacity)
-			text += fmt.Sprintf("AdditionalSciencePoints: %d\n", curAgency.AdditionalSciencePoints)
-			text += fmt.Sprintln("")
-			text += fmt.Sprintln("===== Science Reports =====")
+			output := createOutput(curAgency)
 
-			for _, report := range curAgency.ScienceReports {
-				text += fmt.Sprintf(
-					"ExperimentId: %s | ResearchLocationId: %s | ResearchReportType: %s | FinalScienceValue: %f\n",
-					report.ExperimentId,
-					report.ResearchLocationId,
-					report.ResearchReportType,
-					report.FinalScienceValue,
-				)
+			_, err = fmt.Fprint(file, output)
+			if err != nil {
+				return err
 			}
-		}
-
-		_, err = fmt.Fprint(file, text)
-		if err != nil {
-			return err
 		}
 
 		file.Close()
@@ -105,19 +97,88 @@ func Parse(filePath string, saveToFile bool) error {
 	}
 
 	for _, curAgency := range save.Agencies {
-		fmt.Printf("Science data for %s\n", curAgency.Name)
-		fmt.Printf("SciencePointCapacity: %d\n", curAgency.SciencePointCapacity)
-		fmt.Printf("AdditionalSciencePoints: %d\n", curAgency.AdditionalSciencePoints)
-		fmt.Println("")
-		fmt.Println("===== Science Reports =====")
-		for _, report := range curAgency.ScienceReports {
-			fmt.Printf("ExperimentId: %s\n", report.ExperimentId)
-			fmt.Printf("ResearchLocationId: %s\n", report.ResearchLocationId)
-			fmt.Printf("ResearchReportType: %s\n", report.ResearchReportType)
-			fmt.Printf("FinalScienceValue: %f\n", report.FinalScienceValue)
-			fmt.Println("=====")
-		}
+		output := createOutput(curAgency)
+		fmt.Print(output)
 	}
 
 	return err
+}
+
+func sortExperiments(unsorted []scienceReport) (sorted []scienceReport, err error) {
+	var (
+		atmosphereSurveyReports  []scienceReport
+		crewObservationReports   []scienceReport
+		environmentSurveyReports []scienceReport
+		surfaceSurveyReports     []scienceReport
+		sortFunc                 = func(a, b scienceReport) int {
+			return strings.Compare(a.ResearchLocationId, b.ResearchLocationId)
+		}
+	)
+
+	// sort by experiment id
+	for _, report := range unsorted {
+		switch report.ExperimentId {
+		case atmosphereSurvey:
+			atmosphereSurveyReports = append(atmosphereSurveyReports, report)
+		case crewObservation:
+			crewObservationReports = append(crewObservationReports, report)
+		case environmentSurvey:
+			environmentSurveyReports = append(environmentSurveyReports, report)
+		case surfaceSurvey:
+			surfaceSurveyReports = append(surfaceSurveyReports, report)
+		default:
+			return nil, errors.New(fmt.Sprintf("unkown experiment found: %s", report.ExperimentId))
+		}
+	}
+
+	slices.SortFunc(atmosphereSurveyReports, sortFunc)
+	slices.SortFunc(crewObservationReports, sortFunc)
+	slices.SortFunc(environmentSurveyReports, sortFunc)
+	slices.SortFunc(surfaceSurveyReports, sortFunc)
+
+	return concatMultipleSlices([][]scienceReport{
+		atmosphereSurveyReports,
+		crewObservationReports,
+		environmentSurveyReports,
+		surfaceSurveyReports,
+	}), nil
+}
+
+func createOutput(curAgency agency) (output string) {
+	output += fmt.Sprintf("Science data for %s\n", curAgency.Name)
+	output += fmt.Sprintf("SciencePointCapacity: %d\n", curAgency.SciencePointCapacity)
+	output += fmt.Sprintf("AdditionalSciencePoints: %d\n", curAgency.AdditionalSciencePoints)
+	output += fmt.Sprintln("")
+	output += fmt.Sprintln("===== Science Reports =====")
+
+	for _, report := range curAgency.ScienceReports {
+		output += fmt.Sprintf(
+			"ExperimentId: %s | ResearchLocationId: %s | ResearchReportType: %s | FinalScienceValue: %f\n",
+			report.ExperimentId,
+			report.ResearchLocationId,
+			report.ResearchReportType,
+			report.FinalScienceValue,
+		)
+	}
+
+	return output
+}
+
+func concatMultipleSlices[T any](slices [][]T) []T {
+	var (
+		totalLength int
+		i           int
+	)
+
+	for _, s := range slices {
+		totalLength += len(s)
+	}
+
+	result := make([]T, totalLength)
+
+	for _, s := range slices {
+		i += copy(result[i:], s)
+	}
+
+	return result
 }
