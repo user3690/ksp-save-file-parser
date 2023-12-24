@@ -2,7 +2,6 @@ package saveparser
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"slices"
@@ -57,10 +56,7 @@ func Parse(filePath string, saveToFile bool) error {
 		return err
 	}
 
-	save.Agencies[0].ScienceReports, err = sortExperiments(save.Agencies[0].ScienceReports)
-	if err != nil {
-		return err
-	}
+	save.Agencies[0].ScienceReports = sortExperiments(save.Agencies[0].ScienceReports)
 
 	if saveToFile {
 		workingDir, err = os.Getwd()
@@ -104,12 +100,13 @@ func Parse(filePath string, saveToFile bool) error {
 	return err
 }
 
-func sortExperiments(unsorted []scienceReport) (sorted []scienceReport, err error) {
+func sortExperiments(unsorted []scienceReport) (sorted []scienceReport) {
 	var (
 		atmosphereSurveyReports  []scienceReport
 		crewObservationReports   []scienceReport
 		environmentSurveyReports []scienceReport
 		surfaceSurveyReports     []scienceReport
+		unknown                  []scienceReport
 		sortFunc                 = func(a, b scienceReport) int {
 			return strings.Compare(a.ResearchLocationId, b.ResearchLocationId)
 		}
@@ -127,7 +124,7 @@ func sortExperiments(unsorted []scienceReport) (sorted []scienceReport, err erro
 		case surfaceSurvey:
 			surfaceSurveyReports = append(surfaceSurveyReports, report)
 		default:
-			return nil, errors.New(fmt.Sprintf("unkown experiment found: %s", report.ExperimentId))
+			unknown = append(unknown, report)
 		}
 	}
 
@@ -135,13 +132,15 @@ func sortExperiments(unsorted []scienceReport) (sorted []scienceReport, err erro
 	slices.SortFunc(crewObservationReports, sortFunc)
 	slices.SortFunc(environmentSurveyReports, sortFunc)
 	slices.SortFunc(surfaceSurveyReports, sortFunc)
+	slices.SortFunc(unknown, sortFunc)
 
 	return concatMultipleSlices([][]scienceReport{
 		atmosphereSurveyReports,
 		crewObservationReports,
 		environmentSurveyReports,
 		surfaceSurveyReports,
-	}), nil
+		unknown,
+	})
 }
 
 func createOutput(curAgency agency) (output string) {
