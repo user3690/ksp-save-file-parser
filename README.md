@@ -1,6 +1,10 @@
 # KSP2 Save File Parser
-Some little project to extract the finished science reports in KSP2 over command line.
-Save files can be found under: 
+Some little project to extract the completed science reports in KSP2 over command line.
+It shows you what, where and how much science you have done.
+A for Windows precompiled binary can be found in the `bin` folder.
+
+## Usage
+Save files can be found under:
 ```
 example path: C:\Users\[user]\AppData\LocalLow\Intercept Games\Kerbal Space Program 2\Saves\SinglePlayer\[Campaign Name]
 

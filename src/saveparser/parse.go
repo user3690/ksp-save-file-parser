@@ -145,8 +145,8 @@ func sortExperiments(unsorted []scienceReport) (sorted []scienceReport) {
 
 func createOutput(curAgency agency) (output string) {
 	output += fmt.Sprintf("Science data for %s\n", curAgency.Name)
-	output += fmt.Sprintf("SciencePointCapacity: %d\n", curAgency.SciencePointCapacity)
-	output += fmt.Sprintf("AdditionalSciencePoints: %d\n", curAgency.AdditionalSciencePoints)
+	output += fmt.Sprintf("Total science points: %d\n", curAgency.SciencePointCapacity)
+	output += fmt.Sprintf("Additional science points: %d\n", curAgency.AdditionalSciencePoints)
 	output += fmt.Sprintln("")
 	output += fmt.Sprintln("===== Science Reports =====")
 
