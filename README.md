@@ -14,7 +14,7 @@ Flags:
 Command Examples:
 ```
 ksp_save_file_parser.exe save [pathToSaveFile]
-ksp_save_file_parser.exe save -s [pathToKSP2SaveFile]
+ksp_save_file_parser.exe save -s [pathToSaveFile]
 ```
 
 To build the binary for yourself, you need go version 1.21.* installed, execute following command in the root folder:
