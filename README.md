@@ -3,13 +3,18 @@ Some little project to extract the completed science reports in KSP2 over comman
 It shows you what, where and how much science you have done.
 A for Windows precompiled binary can be found in the `bin` folder.
 
-## Usage
-Save files can be found under:
-```
-example path: C:\Users\[user]\AppData\LocalLow\Intercept Games\Kerbal Space Program 2\Saves\SinglePlayer\[Campaign Name]
+## Save files
+Save files can be found under: `C:\Users\[user]\AppData\LocalLow\Intercept Games\Kerbal Space Program 2\Saves\SinglePlayer\[Campaign Name]`
 
-usage: ksp_save_file_parser.exe save [pathToSaveFile]
-to save the output to a file: ksp_save_file_parser.exe save -s [pathToKSP2SaveFile]
+## Usage of Command on CLI
+Flags:
+```
+-s, --saveToFile   save output to reports.txt
+```
+Command Examples:
+```
+ksp_save_file_parser.exe save [pathToSaveFile]
+ksp_save_file_parser.exe save -s [pathToKSP2SaveFile]
 ```
 
 To build the binary for yourself, you need go version 1.21.* installed, execute following command in the root folder:
